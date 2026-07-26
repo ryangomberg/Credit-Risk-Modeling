@@ -79,8 +79,9 @@ Credit-Risk-Modeling/
 ## Technologies
 
 ## Report
-<img width="564" height="553" alt="image" src="https://github.com/user-attachments/assets/075a48a4-72d2-4345-9301-d46172e6554f" />
-<img width="572" height="334" alt="image" src="https://github.com/user-attachments/assets/3ef9d92a-5317-4a5c-ab18-a3c3a1e19c2b" />
+<img width="568" height="457" alt="image" src="https://github.com/user-attachments/assets/fb2e05d0-ab07-4bc1-9f3b-1e18e1fc678e" />
+<img width="589" height="350" alt="image" src="https://github.com/user-attachments/assets/dd194267-449f-44c3-8ff2-15cb16373f7e" />
+
 See report/Credit Risk Modeling.pdf
 
 ## Skills Demonstrated
