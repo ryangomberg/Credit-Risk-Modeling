@@ -1,0 +1,94 @@
+8 - Sensitivity
+
+Dashed lines indicate the cutoff for each code block.
+
+---------- CODE ----------
+
+def MacD(i, n):
+  """ returns the Macaulay Duration of an asset with
+      level payments
+      Arguments: monthly interest rate, loan term
+      Output: Macaulay duration of the annuity, expressed
+      as a positive number
+  """
+  v_i = (1 + i)**(-n)
+  ann_imm = (1 - v_i)/i
+  ann_due = ann_imm * (1 + i)
+  ann_inc = (ann_due - n*v_i)/i
+  macD = ann_inc/(12*ann_imm)
+  return macD
+
+def ModD(i, n):
+  """ returns the Modified Duration of an asset
+      Arguments: monthly interest rate, loan term
+      Output: Modified duration of the annuity, expressed
+      as a positive number
+  """
+  macD = MacD(i, n)
+  modD = macD/(1 + i)
+  return modD
+
+def new_LV(L_i0, i, n, delta_i):
+  """ returns the new loan value under changes in
+  the interest rate
+  Arguments: initial loan amount, monthly interest rate,
+  loan term, change in interest rate (positive or negative)
+  Output: the new loan value, expressed as a positive number
+  """
+  modD = ModD(i, n)
+  L_i1 = L_i0 - (delta_i * L_i0 * modD)
+  return L_i1
+
+def LV_spectrum(L_i0, i, n, delta_i):
+  """ outputs the spectrum of new values under changes in
+  the interest rate
+  Arguments: initial loan amount, monthly interest rate,
+  loan term, change in interest rate (positive or negative)
+  Output: a 21 x 2 numpy array containing the interest rate
+  and its respective loan value
+  """
+  
+  rate_arr = np.arange(i - delta_i, i + delta_i + delta_i/10, delta_i/10)
+  loan_vals = []
+  for k in rate_arr:
+    macD = MacD(k, n)
+    new_LV = L_i0 * ((1 + i)/(1 + k)) ** macD
+    loan_vals.append(new_LV)
+    
+  return np.column_stack((rate_arr, loan_vals))
+
+ob2 = df_amort2.sample().iloc[0]
+
+# Plotting Loan Value Spectrum for a randomly selected borrower
+fig, ax = plt.subplots(1, 3, figsize = (10, 6))
+
+fig.suptitle('Loan Term Structure', fontsize = 16)
+
+ob1_spec = LV_spectrum(ob2['exp_LV'], ob2['monthly_rate'], ob2['loan_term_length'], 0.005)
+
+ax[0].plot(ob1_spec[:, 0], ob1_spec[:, 1], color = 'red')
+ax[0].set_xlabel("Interest Rate")
+ax[0].set_ylabel("Expected Loan Value")
+ax[0].set_title("With changes of +/- 0.05%")
+ax[0].axvline(x = ob2['monthly_rate'], linestyle = '--', linewidth = 1.5)
+
+ob1_spec2 = LV_spectrum(ob2['exp_LV'], ob2['monthly_rate'], ob2['loan_term_length'], 0.001)
+
+ax[1].plot(ob1_spec2[:, 0], ob1_spec2[:, 1], color = 'red')
+ax[1].set_xlabel("Interest Rate")
+ax[1].set_ylabel("Expected Loan Value")
+ax[1].set_title("With changes of +/- 0.01%")
+ax[1].axvline(x = ob2['monthly_rate'], linestyle = '--', linewidth = 1.5)
+
+ob1_spec3 = LV_spectrum(ob2['exp_LV'], ob2['monthly_rate'], ob2['loan_term_length'], 0.0005)
+
+ax[2].plot(ob1_spec3[:, 0], ob1_spec3[:, 1], color = 'red')
+ax[2].set_xlabel("Interest Rate")
+ax[2].set_ylabel("Expected Loan Value")
+ax[2].set_title("With changes of +/- 0.005%")
+ax[2].axvline(x = ob2['monthly_rate'], linestyle = '--', linewidth = 1.5)
+
+plt.tight_layout()
+plt.show()
+
+--------------------------
