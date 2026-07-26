@@ -1,0 +1,109 @@
+3 - Exploratory Data Analysis
+
+Dashed lines indicate the cutoff for each code block.
+
+---------- CODE ----------
+
+fig, axes = plt.subplots(2, 3, figsize=(16, 8))
+# Age Density distribution
+
+age_dens = sns.histplot(data = df, bins = 30, x = 'person_age', kde = True, color = 'blue', ax=axes[0, 0])
+axes[0, 0].set_title("Age Distribution")
+
+# Loan Amount distogram
+loan_dens = sns.histplot(data = df, bins = 20, x = 'loan_amnt', kde = True, color = 'purple', ax=axes[0, 1])
+axes[0, 1].set_title("Loan Amount Distribution")
+
+# Loan interest rate distribution
+ir_dens = sns.histplot(data = df, bins = 15, x = 'loan_int_rate', kde = True, color = 'red', ax=axes[0, 2])
+axes[0, 2].set_title("Loan Interest Rate Distribution")
+
+# Credit Score distribution
+cs_dens = sns.histplot(data = df, bins = 40, x = 'credit_score', kde = True, color = 'blue', ax=axes[1, 0])
+axes[1, 0].set_title("Credit Score Distribution")
+
+# Personal income distribution
+pi_dens = sns.histplot(data = df, bins = 15, x = 'person_income', kde = True, color = 'purple', ax=axes[1, 1])
+axes[1, 1].set_title("Personal Income Distribution")
+
+# Employment experience distribution
+emp_dens = sns.histplot(data = df, bins = 25, x = 'person_emp_exp', kde = True, color = 'red', ax=axes[1, 2])
+
+axes[1, 2].set_title("Employment Experience Distribution")
+plt.tight_layout()
+
+--------------------------
+
+fig, axes = plt.subplots(3, 2, figsize=(16, 16))
+
+# Loan Status count
+sns.countplot(data = df, x = 'loan_status', ax=axes[0, 0], palette = ('#E0284A', '#2940D6'))
+axes[0, 0].set_title("Loan Status Count")
+
+# Loan Status by gender
+sns.countplot(data = df, x = 'person_gender', hue = 'loan_status', ax=axes[0, 1], palette = ('#E0284A', '#2940D6'))
+axes[0, 1].set_title("Loan Status by Gender")
+
+# Loan Status by education
+sns.countplot(data = df, x = 'person_education', hue = 'loan_status', ax=axes[1,0], palette = ('#E0284A', '#2940D6'))
+axes[1, 0].set_title("Loan Status by Education")
+
+# Loan Status by ownership
+sns.countplot(data = df, x = 'person_home_ownership', hue = 'loan_status', ax = axes[1, 1], palette = ('#E0284A', '#2940D6'))
+axes[1, 1].set_title("Loan Status by Ownership")
+
+# Loan Status by intent
+sns.countplot(data = df, x = 'loan_intent', hue = 'loan_status', ax = axes[2, 0], palette = ('#E0284A', '#2940D6'))
+axes[2, 0].set_title("Loan Status by Intent")
+
+# Loan Status by loan history
+sns.countplot(data = df, x = 'previous_loan_defaults_on_file', hue = 'loan_status',ax = axes[2, 1], palette = ('#E0284A', '#2940D6'))
+axes[2, 1].set_title("Loan Status by Loan History")
+
+plt.tight_layout()
+
+--------------------------
+
+fig, axes = plt.subplots(2, 3, figsize = (10, 8))
+
+# Employment experience by age
+sns.scatterplot(data = df, x = 'person_age', y = 'person_emp_exp', color = '#C44354', ax = axes[0, 0])
+axes[0, 0].set_title("Employment Experience by Age")
+
+# Employment experience by credit history
+sns.lineplot(data = df, x = 'cb_person_cred_hist_length', y = 'person_emp_exp', color = '#7DE8A6', ax = axes[0, 1])
+axes[0, 1].set_title("Employment Experience by Credit History")
+
+# Loan amount vs. income over loan status
+sns.scatterplot(data = df, x = 'person_income', y = 'loan_amnt', hue = 'loan_status', palette = ('#591180', '#6AC3DE'), ax = axes[0, 2])
+axes[0, 2].set_title("Loan Amount vs. Income over Status")
+
+# Credit score density by loan status
+sns.kdeplot(data = df, x = 'credit_score', hue = 'loan_status', fill = True, palette = ('#6ADEBF', '#DD9AED'), ax = axes[1, 0])
+axes[1, 0].set_title('Credit Score Density by Loan Status')
+
+# Loan to income ratio count
+sns.histplot(data = df, x = 'loan_percent_income', bins = 40, kde = False, hue = 'loan_status', palette = ('#373FCC', '#7CE683'), ax = axes[1, 1])
+axes[1, 1].set_title('Loan Amount to Income Ratio Distribution')
+
+# Loan interest rate by status
+sns.kdeplot(data = df, x = 'loan_int_rate', hue = 'loan_status', fill = True, palette = ('#B17CE6', '#C93E3E'), ax = axes[1, 2])
+axes[1, 2].set_title('Loan Interest Rate by Loan Status')
+
+plt.tight_layout()
+
+--------------------------
+
+# VIF calculation for person_age, person_emp_exp, and cb_person_cred_hist_length
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+import statsmodels.api as sm
+
+lin_cols = ['person_age', 'person_emp_exp', 'cb_person_cred_hist_length']
+X = df[lin_cols]
+X = sm.add_constant(X)
+vif_df = pd.DataFrame()
+vif_df['features'] = X.columns
+vif_df['VIF'] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
+print(vif_df.sort_values(by = 'VIF', ascending = False))
+
+--------------------------
