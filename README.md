@@ -100,7 +100,7 @@ See report/Credit Risk Modeling.pdf
 ## Skills Demonstrated
 * Data Preprocessing and Cleaning
 * Exploratory Data Analysis
-* Multicollinearity
+* Multicollinearity, VIF
 * Classification modeling and probability estimation
 * Classification accuracy
 * Confusion matrices
