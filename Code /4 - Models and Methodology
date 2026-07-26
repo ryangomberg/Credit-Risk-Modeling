@@ -1,0 +1,320 @@
+4 - Models and Methodologies
+
+Dashed lines indicate the cutoff for each code block.
+
+---------- CODE ----------
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn import metrics
+
+# Splitting the data, including all features
+X = df_encoded.drop(['loan_status'], axis = 1)
+y = df_encoded['loan_status']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, random_state = 0)
+
+log_model = LogisticRegression(random_state = 0)
+log_model.fit(X_train, y_train)
+y_predlog = log_model.predict(X_test)
+
+print(f"Logistic Regression Model Accuracy = {metrics.accuracy_score(y_test, y_predlog):.2%}")
+
+--------------------------
+
+# Logistic Regression excluding age and employment experience
+X2 = df_encoded.drop(['person_age', 'person_emp_exp', 'loan_status'], axis = 1)
+X2_train, X2_test, y2_train, y2_test = train_test_split(X2, y, test_size = 0.25, random_state = 0)
+
+log_model2 = LogisticRegression(random_state = 0)
+log_model2.fit(X2_train, y2_train)
+y2_predlog = log_model2.predict(X2_test)
+print(f"Modified Logisitc Regression Model Accuracy = {metrics.accuracy_score(y2_test, y2_predlog):.2%}")
+
+--------------------------
+
+# Confusion matrix
+print(metrics.confusion_matrix(y_test, y2_predlog))
+
+--------------------------
+
+sns.heatmap(metrics.confusion_matrix(y2_test, y2_predlog), annot = True, cmap = 'coolwarm')
+plt.xlabel('Predicted')
+plt.ylabel('Actual');
+
+--------------------------
+
+# Classification
+print(metrics.classification_report(y2_test, y2_predlog, target_names = ['Default', 'Paid-on-time']))
+
+--------------------------
+
+# L1 Regularization: Fitting
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegressionCV
+
+X_scaled = StandardScaler().fit_transform(X)
+Xs_train, Xs_test, ys_train, ys_test = train_test_split(X_scaled, y, test_size = 0. 25, random_state = 0)
+
+# Optimizing the regularization coefficient
+lasso_cv = LogisticRegressionCV(
+  penalty = 'l1',
+  solver = 'liblinear',
+  cv = 5,
+  scoring = 'roc_auc',
+  Cs = 10,
+  max_iter = 10
+)
+
+lasso_cv.fit(Xs_train, y_train)
+print("Optimal C:", lasso_cv.C_)
+
+L1log = LogisticRegression(penalty = 'l1', n_jobs = -1, solver = 'liblinear', C = 0.04641589)
+L1log.fit(Xs_train, ys_train)
+
+# Printing Coefficients
+print(L1log.coef_)
+print(L1log.intercept_)
+
+y_predlogL1 = L1log.predict(Xs_test)
+
+print(f"Lasso Logistic Regression Model Accuracy = {metrics.accuracy_score(y_test, y_predlogL1):.2%}")
+sns.barplot(x = L1log.coef_[0], y = X_train.columns, palette = 'rainbow')
+
+--------------------------
+
+# Confusion matrix
+print(metrics.confusion_matrix(y_test, y_predlogL1))
+
+--------------------------
+
+sns.heatmap(metrics.confusion_matrix(y2_test, y_predlogL1), annot = True, cmap = 'coolwarm')
+plt.xlabel('Predicted')
+plt.ylabel('Actual');
+
+--------------------------
+
+# Classification
+print(metrics.classification_report(y_test, y_predlogL1, target_names = ['Default', 'Paid-on-time']))
+
+--------------------------
+
+# ROC Curves
+y_problog = log_model.predict_proba(X_test)[:, 1]
+fpr, tpr, _ = metrics.roc_curve(y_test, y_problog)
+auc = metrics.roc_auc_score(y_test, y_problog)
+
+y_problog2 = log_model2.predict_proba(X2_test)[:, 1]
+fpr2, tpr2, _ = metrics.roc_curve(y2_test, y_problog2)
+auc2 = metrics.roc_auc_score(y2_test, y_problog2)
+
+y_problog3 = L1log.predict_proba(Xs_test)[:, 1]
+fpr3, tpr3, _ = metrics.roc_curve(ys_test, y_problog3)
+auc3 = metrics.roc_auc_score(ys_test, y_problog3)
+plt.plot(fpr, tpr, label = f"All Features (AUC = {auc:.2%})")
+plt.plot(fpr2, tpr2, label = f"Dropped Age & Emp_Exp (AUC = {auc2:.2%})")
+plt.plot(fpr3, tpr3, label = f"L1-Regularization (AUC = {auc3:.2%})")
+plt.legend()
+
+--------------------------
+
+# 10-fold cross validation
+from sklearn.model_selection import cross_val_score
+
+scores_reg = cross_val_score(log_model, X_train, y_train, cv = 10, scoring = 'accuracy')
+scores_dropped = cross_val_score(log_model2, X2_train, y2_train, cv = 10, scoring = 'accuracy')
+scores_L1 = cross_val_score(L1log, Xs_train, ys_train, cv = 10, scoring = 'accuracy')
+
+print(f"Cross-validation scores without changes: {scores_reg}")
+print(f"Mean accuracy without changes: {np.mean(scores_reg):.4f}")
+
+print(f"Cross-validation scores after dropping : {scores_dropped}")
+print(f"Mean accuracy after dropping: {np.mean(scores_dropped):.4f}")
+
+print(f"Cross-validation scores with L1-regularization: {scores_L1}")
+print(f"Mean accuracy with L1-regularization: {np.mean(scores_L1):.4f}")
+
+--------------------------
+
+# Bootstrapping over 1000 samples
+from sklearn.metrics import roc_auc_score
+def bootstrap_auc(y_true, y_pred_proba, n_boot = 1000, random_state = 42):
+  """ Returns the original AUC, mean AUC, and the lower and upper
+  limits of the 95% confidence interval for the AUC
+  Arguments: actual value of test data, predicted value of test
+  data
+  Output: original and mean AUC, as well as the bounds of the
+  95% confidence interval
+  """
+  rng = np.random.default_rng(random_state)
+  n = len(y_true)
+  aucs = []
+  for _ in range(n_boot):
+    idx = rng.integers(0, n, n)
+    if len(np.unique(y_true.iloc[idx])) < 2:
+      continue
+    auc = roc_auc_score(y_true.iloc[idx], y_pred_proba[idx])
+    aucs.append(auc)
+  aucs = np.array(aucs)
+  lowerperc = np.percentile(aucs, 2.5)
+  upperperc = np.percentile(aucs, 97.5)
+  return {
+    "original_auc": roc_auc_score(y_true, y_pred_proba),
+    "mean_auc": aucs.mean(),
+    "ci_lower": lowerperc,
+    "ci_upper": upperperc,
+  }
+  
+results = bootstrap_auc(y2_test, y_problog2)
+print("Mean Bootstrap AUC:", results["mean_auc"])
+print("95% CI:", results["ci_lower"], "-", results["ci_upper"])
+
+results_L1 = bootstrap_auc(ys_test, y_problog3)
+print("Mean Bootstrap L1 AUC:", results_L1["mean_auc"])
+print("95% CI L1:", results_L1["ci_lower"], "-", results_L1["ci_upper"])
+
+--------------------------
+
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score
+scaler = StandardScaler()
+
+# Standardizing features
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Fitting a LDA object to our dataset
+lda = LinearDiscriminantAnalysis()
+lda_model = lda.fit(X_train, y_train)
+
+# Covariance matrix
+lda_pred = lda.predict(X_test_scaled)
+lda_prob = lda.predict_proba(X_test_scaled)[:, 1]
+
+accuracy = accuracy_score(y_test, lda_pred)
+print(f"LDA Accuracy: {accuracy:.4f}")
+
+print(metrics.confusion_matrix(y_test, lda_pred))
+
+--------------------------
+
+sns.heatmap(metrics.confusion_matrix(y_test, lda_pred), annot = True, cmap = 'coolwarm')
+plt.xlabel('Predicted')
+plt.ylabel('Actual');
+
+--------------------------
+
+# Classification
+print(metrics.classification_report(y_test, lda_pred, target_names = ['Default', 'Paid on time']))
+
+--------------------------
+
+# ROC Curve for LDA
+fprLDA, tprLDA, _ = metrics.roc_curve(y_test, lda_prob)
+auc = metrics.roc_auc_score(y_test, lda_prob)
+
+plt.plot(fprLDA, tprLDA, label = f"LDA (AUC = {auc:.2%})")
+plt.legend()
+
+--------------------------
+
+# Random Forest Classification
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+
+forest = RandomForestClassifier(n_estimators = 1000, max_features = 5)
+forest.fit(X_train, y_train)
+
+# Ranking Feature Importances
+importances = forest.feature_importances_
+indices = np.argsort(importances)
+plt.barh(X.columns[indices], importances[indices], color = "#04D8B2")
+plt.title("Feature Importances: Random Forest");
+plt.show()
+
+# Computing Accuracy
+forest_test = forest.predict(X_test)
+forest_score = accuracy_score(y_test, forest_test)
+print(f'Random Forest Test Data Accuracy = {forest_score:.4f}')
+
+--------------------------
+
+# Confusion Matrix
+y_predRF = forest.predict(X_test)
+y_probaRF = forest.predict_proba(X_test)[:, 1]
+
+print(metrics.confusion_matrix(y_test, y_predRF))
+sns.heatmap(metrics.confusion_matrix(y_test, y_predRF), annot = True, cmap = 'coolwarm')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+
+--------------------------
+
+# Classification report
+print(metrics.classification_report(y_test, y_predRF, target_names=['Default', 'Paid on time']))
+
+--------------------------
+
+fprRF, tprRF, _ = metrics.roc_curve(y_test, y_probaRF)
+auc = metrics.roc_auc_score(y_test, y_probaRF)
+plt.plot(fpr, tpr, label=f"AUC = {auc:.2%}")
+plt.legend();
+
+--------------------------
+
+results_RF = bootstrap_auc(y_test, y_probaRF)
+print("Mean Bootstrap Random Forest AUC:", results_RF["mean_auc"])
+print("95% CI Random Forest:", results_RF["ci_lower"], "-", results_RF["ci_upper"])
+
+--------------------------
+
+# Boosting model
+from sklearn.ensemble import GradientBoostingClassifier
+
+gbRF = GradientBoostingClassifier(n_estimators = 1000, learning_rate = 0.1, max_depth = 3, random_state = 42)
+gbRF.fit(X_train, y_train)
+
+#Ranking Feature Importances
+importances_boost = gbRF.feature_importances_
+indices_boost = np.argsort(importances_boost)
+plt.barh(X.columns[indices], importances_boost[indices_boost], color = "#04D8B2")
+plt.title("Feature Importances: Boosting");
+plt.show()
+
+#Computing Accuracy
+boost_test = gbRF.predict(X_test)
+boost_score = accuracy_score(y_test, boost_test)
+print(f'Boosting Test Data Accuracy = {boost_score:.4f}')
+
+--------------------------
+
+# Confusion Matrix
+y_pred_boost = gbRF.predict(X_test)
+y_prob_boost = gbRF.predict_proba(X_test)[:, 1]
+
+print(metrics.confusion_matrix(y_test, y_pred_boost))
+sns.heatmap(metrics.confusion_matrix(y_test, y_pred_boost), annot = True, cmap = 'coolwarm')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+
+--------------------------
+
+# Classification report
+print(metrics.classification_report(y_test, y_pred_boost, target_names = ['Default', 'Paid on time']))
+
+--------------------------
+
+# ROC Curve
+fpr_boost, tpr_boost, _ = metrics.roc_curve(y_test, y_prob_boost)
+auc = metrics.roc_auc_score(y_test, y_prob_boost)
+plt.plot(fpr_boost, tpr_boost, label=f"AUC = {auc:.2%}")
+plt.legend();
+
+--------------------------
+
+# 95% CI
+results_boost = bootstrap_auc(y_test, y_prob_boost)
+print("Mean Bootstrap Boosting AUC:", results_boost["mean_auc"])
+print("95% CI Boosting:", results_boost["ci_lower"], "-", results_boost["ci_upper"])
+
+--------------------------
