@@ -1,0 +1,69 @@
+2 - Preprocessing
+
+Dashed lines indicate the cutoff for each code block.
+
+---------- CODE ----------
+
+# Feature type and checking for missing values
+df.info()
+
+-------------------------
+
+# Summary of numerical features
+df.describe().T
+
+-------------------------
+
+# Sort columns by missing percentage from highest to lowest
+no_entry = df.isna().mean().sort_values(ascending = False)
+no_entry[no_entry > 0]
+
+-------------------------
+
+# Checking for unique values
+print("Duplicated row count:", df.duplicated().sum())
+
+-------------------------
+
+# Number of unique values in each feature
+num_unique = df.nunique().sort_values(ascending = False)
+num_unique
+# Identify features with at most 9 classes
+for col in num_unique.index:
+uniq_count = num_unique[col]
+if uniq_count < 10:
+uniq_vals = df[col].dropna().unique()
+print(f"{col}: {uniq_count} ({list(uniq_vals)})")
+else:
+print(f"{col}: {uniq_count}")
+
+-------------------------
+
+# Reorder education to match typical progression
+ord_edu = ['High School', 'Associate', 'Bachelor', 'Master', 'Doctorate']
+df['person_education'] = df['person_education'].astype(pd.
+↪CategoricalDtype(categories = ord_edu, ordered = True))
+# Build quantiative and qualitative exclusive dataframes
+cat_cols = df.select_dtypes(include = ["object"]).columns.tolist()
+num_cols = df.select_dtypes(include = [np.number]).columns.tolist()
+cat_cols, num_cols
+
+-------------------------
+
+# Identifying borrowers with outliers in age
+age_outlier = df[df['person_age'] > 100]
+age_outlier
+
+-------------------------
+
+# Identifying borrowers wtih outliers in income
+income_outlier = df[df['person_income'] > 2000000]
+income_outlier
+
+-------------------------
+
+# Proportion of default and paid-on-time
+df['loan_status'].value_counts(dropna = False)
+
+-------------------------
+
