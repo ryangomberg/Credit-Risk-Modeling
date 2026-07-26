@@ -1,0 +1,70 @@
+6 - Default Risk Measurement
+
+Dashed lines indicate the cutoff for each code block.
+
+---------- CODE ----------
+
+# Hazard rate, survival probability, expected loan value computations
+def hazard_rate(pd, term):
+  """ Returns the constant hazard rate of a borrower's ability to
+      repay a loan
+      Arguments: probability of default and term of the loan
+      Output: the constant hazard rate expressed as a real number
+  """
+  return -np.log(1 - pd)/term
+  
+def survival_prob(pd, term):
+  """ Returns the survival probabilities at each payment in
+      a loan amortization term for a given borrower
+      Arguments: probability of default and term of the loan
+      Output: a 1 x term array containing survival probabilities,
+      each expressed as real numbers
+  """
+  lamb = hazard_rate(pd, term)
+  t = np.arange(1, term + 1)
+  Sp = np.exp(-lamb * t)
+  return t, Sp
+
+--------------------------
+
+def expected_LV(pd, term, R, i):
+  """ Returns the expected loan value for a given borrower
+      Arguments: probability of default, term of the loan,
+      monthly payments, and monthly interest rate
+      Output: the expected loan value, expressed as a
+      real number
+  """
+  t, Sp = survival_prob(pd, term)
+  v_t = 1/(1 + i)**t
+  return np.sum(Sp * R * v_t)
+  
+test_LV = expected_LV(
+ob1['default_prob'], ob1['loan_term_length'], ob1['monthly_payment'], ob1['monthly_rate'])
+test_LV
+
+--------------------------
+
+# Adding expected loan value column
+ELV = pd.DataFrame(np.zeros(len(df_amort)), columns = ['exp_LV'])
+
+for i in range(len(df_amort)):
+  ob = df_amort.iloc[i]
+  ob_ELV = expected_LV(
+    ob['default_prob'], ob['loan_term_length'], ob['monthly_payment'], ob['monthly_rate'])
+  ELV.iloc[i] = ob_ELV
+  
+df_amort2 = pd.concat([df_amort, ELV], axis = 1)
+
+# Measuring expected return for lenders
+df_amort2['ELV_percentage_diff'] = (df_amort2['exp_LV'] - df_amort2['loan_amnt'])/df_amort2['loan_amnt'] * 100
+df_amort2[['loan_amnt', 'default_prob', 'exp_LV', 'ELV_percentage_diff']]
+
+--------------------------
+
+risk_sample = df_amort2.sample(frac = 0.01, random_state = 42)
+plt.figure(figsize = (6, 4))
+sns.scatterplot(data = risk_sample, x = 'default_prob', y = 'ELV_percentage_diff', color = '#324EA8')
+plt.title("Expected Return for Lenders")
+plt.show()
+
+--------------------------
