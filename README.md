@@ -21,6 +21,9 @@ This project develops classification, loss, and sensitivity modeling for 45,000 
 * One-hot encoding for classification modeling
 * 75%/25% train/test split
 
+### Exploratory Data Analysis
+* VIF
+
 ### Models
 * Logistic Regression: with all features, without age and employment experience, and L1-regularization
 * Linear Discriminant Analysis with all features
@@ -35,11 +38,21 @@ This project develops classification, loss, and sensitivity modeling for 45,000 
 * K-fold cross-validation on accuracy
 * Bootstrapping 95% confidence intervals on AUC
 
-### Loss Modeling
-
-
+### Amortization and Loss Modeling
+* Debt-to-income ratio
+* Interest and principal calculations
+* Hazard rate and survival probability
+* PD, EAD, LGD
+* First order Macaulay duration
 
 ## Notable Results
+* Identified multicollearity between age, employment experience, and credit history length
+* Previous loan defaults appeared to have the strongest contribution in loan defaults
+* A boosted ensemble model promises the highest predictablility and separability power, with F1-scores of 96% and 85% for default and paid-on-time, respectively, as well as an AUC of 97.93%
+* Found a monotonic decrease and increase between interest and principal, respectively
+* The expected loan value has a concave relationship with survival probability: ELV monotonically decreases as survival probability decreases. Consequently, the expected loss ratio increases
+* As the interest rate increases, the present value of expected payments declines due to heavier discounting
+* Increases in interest rates substantially reduces the present value of expected loan payments, exposing the lender to interest rate risk
 
 ## Repository Structure
 
