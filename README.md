@@ -55,6 +55,26 @@ This project develops classification, loss, and sensitivity modeling for 45,000 
 * Increases in interest rates substantially reduces the present value of expected loan payments, exposing the lender to interest rate risk
 
 ## Repository Structure
+```
+Credit-Risk-Modeling/
+│             
+├── code/
+│   ├── 1 - Introduction to the Dataset, Objectives
+│   ├── 2 - Preprocessing
+│   ├── 3 - Exploratory Data Analysis
+│   ├── 4 - Models & Methodology
+│   ├── 5 - Amortization Modeling
+│   ├── 6 - Default Risk Measurement
+│   ├── 7 - Expected Loss Modeling
+│   └── 8 - Sensitivity
+├── code/
+│   └── loan_data.csv
+├── report/
+│   └── Credit Risk Modeling.pdf
+│
+└── README.md
+```
+
 
 ## Technologies
 
