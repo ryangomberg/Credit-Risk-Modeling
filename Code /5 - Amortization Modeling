@@ -1,0 +1,122 @@
+5 - Amortization Modeling
+
+Dashed lines indicate the cutoff for each code block.
+
+---------- CODE ----------
+
+probabilities = gbRF.predict_proba(X_scaled)[:, 0]
+df_amort = df[['loan_amnt', 'loan_int_rate', 'loan_intent', 'loan_percent_income']]
+df_amort["default_prob"] = probabilities
+
+--------------------------
+
+# Mapping loan_intent to a numerical length term
+loan_term_map = {
+  "PERSONAL": 60,
+  "EDUCATION": 180,
+  "MEDICAL": 60,
+  "VENTURE": 48,
+  "HOMEIMPROVEMENT": 36,
+  "DEBTCONSOLIDATION": 48
+}
+
+df_amort["loan_term_length"] = df_amort["loan_intent"].map(loan_term_map)
+df_amort["annual_rate"] = df_amort["loan_int_rate"]/100
+df_amort["monthly_rate"] = (df_amort["annual_rate"] + 1)**(1/12) - 1
+df_amort["monthly_income"] = df["person_income"]/12
+df_amort
+
+--------------------------
+
+# Annuity payment calculation
+df_amort["monthly_payment"] = (
+df_amort["loan_amnt"] * df_amort["monthly_rate"]) / (1 - (1 + df_amort["monthly_rate"]) ** (-df_amort["loan_term_length"]))
+df_amort[["loan_amnt", "loan_term_length", "monthly_income", "monthly_payment"]]
+
+--------------------------
+
+# Repayment amount and total interest paid
+df_amort["repayment_amount"] = df_amort["monthly_payment"] * df_amort["loan_term_length"]
+df_amort["total_interest"] = df_amort["repayment_amount"] - df_amort["loan_amnt"]
+
+# Statistics of total interest by each loan intent class
+df_amort.groupby("loan_intent")["total_interest"].describe()
+
+--------------------------
+
+# Statistics of monthly payment by each loan intent class
+df_amort.groupby("loan_intent")["monthly_payment"].describe()
+
+--------------------------
+
+# Boxplot on monthly payment by loan intent
+bplot = sns.boxplot(data = df_amort, x = "loan_intent", y = "monthly_payment", color = "teal")
+bplot.set_xticklabels(bplot.get_xticklabels(), fontsize = 6)
+plt.tight_layout()
+
+--------------------------
+
+# Boxplot on monthly-debt-to-income (DTI) ratio
+df_amort["DTI"] = df_amort["monthly_payment"]/df_amort["monthly_income"]
+DTIplot = sns.boxplot(data = df_amort, x = "loan_intent", y = "DTI", color = "aquamarine")
+DTIplot.set_xticklabels(DTIplot.get_xticklabels(), fontsize = 6)
+plt.tight_layout()
+
+--------------------------
+
+# Full amortization schedule
+def amortization_schedule(loan_amount, monthly_rate, term_length, payment):
+  """ Returns an amortization schedule of a loan
+  Arguments: loan amount, monthly interest rate, term length, monthly payment
+  Output: A pandas DataFrame with a term_length x 5 shape
+  The columns include the payment, interest, principal, and remaining balance
+  for each month
+  """
+  balance = loan_amount
+
+  schedule = []
+  
+  for month in range(1, term_length + 1): # Iterates over each month in loan term
+    interest = balance * monthly_rate
+    principal = payment - interest
+    balance -= principal
+    
+    # Add columns to the schedule DataFrame
+    schedule.append({
+      "Month": month,
+      "Payment": payment,
+      "Interest": interest,
+      "Principal": principal,
+      "Remaining Balance": max(balance, 0)
+    })
+    
+  return pd.DataFrame(schedule)
+  
+# Applying to a randomly chosen observation
+ob1 = df_amort.sample().iloc[0]
+ob1
+
+--------------------------
+
+ex_amort = amortization_schedule(
+ob1['loan_amnt'], ob1['monthly_rate'], ob1['loan_term_length'], ob1['monthly_payment'])
+ex_amort.head(5)
+
+--------------------------
+
+ex_amort.tail(5)
+
+--------------------------
+
+# Interest vs. Principal over term length
+plt.figure(figsize = (6, 4))
+plt.plot(ex_amort['Month'], ex_amort['Principal'], label = 'Principal Payment', color = "green")
+plt.plot(ex_amort['Month'], ex_amort['Interest'], label = 'Interest Payment')
+plt.xlabel('Payment Term (Months)')
+plt.ylabel('Amount ($)')
+plt.title('Interest vs Principal Over Payment Term')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+--------------------------
