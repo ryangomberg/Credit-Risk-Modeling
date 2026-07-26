@@ -77,6 +77,19 @@ Credit-Risk-Modeling/
 
 
 ## Technologies
+### Data
+See data/loan_data.csv
+
+### Software
+Python (Jupyter Notebook)
+
+### Modules
+* Pandas
+* Numpy
+* Matplotlib
+* Sklearn
+* Seaborn
+* Statsmodels
 
 ## Report
 <img width="568" height="457" alt="image" src="https://github.com/user-attachments/assets/fb2e05d0-ab07-4bc1-9f3b-1e18e1fc678e" />
@@ -85,3 +98,23 @@ Credit-Risk-Modeling/
 See report/Credit Risk Modeling.pdf
 
 ## Skills Demonstrated
+* Data Preprocessing and Cleaning
+* Exploratory Data Analysis
+* Multicollinearity
+* Classification modeling and probability estimation
+* Classification accuracy
+* Confusion matrices
+* Feature importance
+* Precision, recall, F1-score
+* AUC curves
+* K-fold cross validation
+* Bootstrapping
+* Confidence intervals
+* Interest and principal computation
+* Amortization scheduling
+* Debt-to-income (DTI) ratio
+* Hazard rates and survival curves
+* Expected loan value and lender return
+* PD, EAD, LGD
+* Macaulay duration
+* Loan amount sensitivity
