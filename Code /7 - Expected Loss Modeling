@@ -1,0 +1,66 @@
+7 - Expected Loss Modeling
+
+Dashed lines indicate the cutoff for each code block.
+
+---------- CODE ----------
+
+def outstanding_balance(R, i, t, n):
+  """ Returns the outstanding balance of a loan
+      after t payments
+      Arguments: monthly payment, monthly interest rate,
+      current payment term, loan term
+      Output: the outstanding balance expressed as a real
+      number
+  """
+  v_i = 1/((1 + i)**(n - t))
+  OB = (R * (1 - v_i))/i
+  time = t
+  return time, OB
+  
+time, OB_20 = outstanding_balance(ob1['monthly_payment'], ob1['monthly_rate'], 20, ob1['loan_term_length'])
+print(f"The outstanding balance after {time} months is: {OB_20}")
+
+--------------------------
+
+def expected_loss(R, i, n, pd):
+  """ Returns the expected loss of a loan
+      Arguments: monthly payments, monthly rate,
+      loan term, probability of default
+      Output: expected loss expressed as a real
+      number
+  """
+  t, Sp = survival_prob(pd, n)
+  exp_loss = []
+  S = np.insert(Sp, 0, 1)
+  for k in np.arange(1, n + 1):
+    PD_t = S[k - 1] - S[k]
+    time, OB_t = outstanding_balance(R, i, k, n)
+    exp_loss.append(PD_t * OB_t * (1 + i)**(-k) * 0.6)
+  return sum(exp_loss)
+  
+EL_1 = expected_loss(
+ob1['monthly_payment'], ob1['monthly_rate'], ob1['loan_term_length'], ob1['default_prob'])
+EL_1
+
+--------------------------
+
+# Adding expected loss column
+ELoss = pd.DataFrame(np.zeros(len(df_amort)), columns = ['exp_loss'])
+
+for i in range(len(df_amort)):
+  ob_L = df_amort.iloc[i]
+  ob_ELoss = expected_loss(
+    ob_L['monthly_payment'], ob_L['monthly_rate'], ob_L['loan_term_length'], ob_L['default_prob'])
+  ELoss.iloc[i] = ob_ELoss
+  
+df_final = pd.concat([df_amort2, ELoss], axis = 1)
+df_final[['loan_amnt', 'loan_int_rate', 'default_prob', 'loan_term_length', 'monthly_rate', 'monthly_payment', 'exp_loss']].sample(5)
+
+--------------------------
+
+df_final['loss_ratio'] = df_final['exp_loss']/df_final['loan_amnt']
+sns.scatterplot(data = df_final, x = 'default_prob', y = 'loss_ratio', color = '#4E068A')
+max_ratio = df_final['loss_ratio'].max()
+max_ratio
+
+--------------------------
