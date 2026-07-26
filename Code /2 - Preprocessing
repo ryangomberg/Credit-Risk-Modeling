@@ -41,8 +41,7 @@ print(f"{col}: {uniq_count}")
 
 # Reorder education to match typical progression
 ord_edu = ['High School', 'Associate', 'Bachelor', 'Master', 'Doctorate']
-df['person_education'] = df['person_education'].astype(pd.
-↪CategoricalDtype(categories = ord_edu, ordered = True))
+df['person_education'] = df['person_education'].astype(pd.CategoricalDtype(categories = ord_edu, ordered = True))
 # Build quantiative and qualitative exclusive dataframes
 cat_cols = df.select_dtypes(include = ["object"]).columns.tolist()
 num_cols = df.select_dtypes(include = [np.number]).columns.tolist()
