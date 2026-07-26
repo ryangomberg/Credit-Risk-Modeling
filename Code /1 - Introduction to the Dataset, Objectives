@@ -1,4 +1,10 @@
+1 - Introduction to the Dataset, Objectives
 
+Dashed lines indicate the cutoff for each code block.
+
+---------- CODE ----------
+
+# Importing relevant submodules
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,8 +12,15 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler, OneHotEncoder
 import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
+
 import warnings
 warnings.filterwarnings("ignore")
+
+# Setting plot text to Times New Roman
 plt.rcParams["font.family"] = "Times New Roman"
+
+# Importing the dataset
 df = pd.read_csv('loan_data.csv')
+
+# First 15 entries
 df.head(15)
