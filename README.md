@@ -67,7 +67,7 @@ Credit-Risk-Modeling/
 │   ├── 6 - Default Risk Measurement
 │   ├── 7 - Expected Loss Modeling
 │   └── 8 - Sensitivity
-├── code/
+├── data/
 │   └── loan_data.csv
 ├── report/
 │   └── Credit Risk Modeling.pdf
